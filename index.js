@@ -108,7 +108,14 @@ routes.forEach(route => {
     res.sendFile(path.join(__dirname, "static", route.file));
   });
 });
+// Catch-all routes for proxied URLs - must come after specific routes
+app.get("/a/*", (_req, res) => {
+  res.sendFile(path.join(__dirname, "static", "games.html"));
+});
 
+app.get("/d/*", (_req, res) => {
+  res.sendFile(path.join(__dirname, "static", "tabs.html"));
+});
 app.use((req, res, next) => {
   res.status(404).sendFile(path.join(__dirname, "static", "404.html"));
 });
