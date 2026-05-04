@@ -53,6 +53,7 @@ const ghGamesBases = {
   "/gh-games/1/": "https://raw.githubusercontent.com/qrs/x/fixy/",
   "/gh-games/2/": "https://raw.githubusercontent.com/3v1/V5-Assets/main/",
   "/gh-games/3/": "https://raw.githubusercontent.com/3v1/V5-Retro/master/",
+  "/gh-games/4/": "https://raw.githubusercontent.com/xbubbo/V6-Assets/main/",
 };
 const noMimeExts = new Set([".unityweb"]);
 
