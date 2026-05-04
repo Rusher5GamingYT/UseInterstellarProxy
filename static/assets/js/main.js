@@ -37,16 +37,15 @@ try {
   }
 }
 
-function sanitizeUrl(url) {
-  if (!url || typeof url !== "string") return null;
+function reconstructSafeUrl(raw) {
+  if (!raw || typeof raw !== "string") return null;
   try {
-    const parsed = new URL(url);
-    if (["http:", "https:", "data:"].includes(parsed.protocol)) {
-      return url;
-    }
-    return null;
+    const parsed = new URL(raw);
+    const allowed = ["https:", "http:", "data:"];
+    if (!allowed.includes(parsed.protocol)) return null;
+    return parsed.href;
   } catch {
-    if (!url.includes(":")) return url;
+    if (typeof raw === "string" && !raw.includes(":")) return raw;
     return null;
   }
 }
@@ -88,21 +87,21 @@ document.addEventListener("DOMContentLoaded", () => {
   const cloakIcon = localStorage.getItem("CustomIcon") || localStorage.getItem("icon");
   if (cloakName) title.textContent = cloakName;
   if (cloakIcon) {
-    const safeIcon = sanitizeUrl(cloakIcon);
+    const safeIcon = reconstructSafeUrl(cloakIcon);
     if (safeIcon) icon.setAttribute("href", safeIcon);
   }
 
   // Event Key Logic
   const eventKey = JSON.parse(localStorage.getItem("eventKey")) || ["`"];
-  const pLink = localStorage.getItem("pLink") || "https://classroom.google.com/";
+  const rawPLink = localStorage.getItem("pLink") || "https://classroom.google.com/";
+  const pLink = reconstructSafeUrl(rawPLink) ?? "https://classroom.google.com/";
   let pressedKeys = [];
 
   document.addEventListener("keydown", event => {
     pressedKeys.push(event.key);
     const recentKeys = pressedKeys.slice(-eventKey.length);
     if (recentKeys.length === eventKey.length && eventKey.every((key, i) => key === recentKeys[i])) {
-      const safeLink = sanitizeUrl(pLink);
-      if (safeLink) window.location.href = safeLink;
+      window.location.replace(pLink);
       pressedKeys = [];
     }
   });
