@@ -714,14 +714,14 @@
     "categories": ["all", "local"]
   },
   {
-    "name": "1v1.LOL",
-    "link": "https://1v1.lol",
+    "name": "1v1.LOL Reloaded",
+    "link": "https://1v1lolreloaded.com/index.html",
     "image": "/assets/media/icons/1v1-lol.webp",
     "categories": ["all,", "2P"]
   },
   {
     "name": "2D Rocket League",
-    "link": "https://v6p9d9t4.ssl.hwcdn.net/html/3325334/index.html",
+    "link": "https://script.google.com/macros/s/AKfycbzxpyljaqvmqRShvfh_XpN8ZRRpLRCeYHZ0V-9ZoC4wf0pFHWFfgQQM-o1o-Q7pc3qAwg/exec",
     "image": "/assets/media/icons/2D-Rocket-League.webp",
     "categories": ["all"]
   },
@@ -739,7 +739,7 @@
   },
   {
     "name": "8 Ball Pool",
-    "link": "https://8ball-pool.io",
+    "link": "https://gamedistribution.arkadiumarena.com/arenaapi/game/pool/html5",
     "image": "/assets/media/icons/8ball.webp",
     "categories": ["all"]
   },
@@ -756,8 +756,8 @@
     "categories": ["all"]
   },
   {
-    "name": "AC - Wild World",
-    "link": "https://static.arcadespot.com/retroemulator.php?system=nds&game=2017/10/animal-crossing-wild-world1.zip",
+    "name": "Animal Crossing: Wild World",
+    "link": "https://gamesfrog.com/games/nds/animal-crossing-wild-world/iframe",
     "image": "/assets/media/icons/acww.webp",
     "categories": ["all"]
   },
