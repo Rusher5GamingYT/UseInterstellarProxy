@@ -11,9 +11,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const pChangeElement = document.getElementById("pChange");
   if (pChangeElement) {
     pChangeElement.addEventListener("change", function () {
-      localStorage.setItem("pchoice", this.value);
+      localStorage.setItem("proxy", this.value);
     });
-    pChangeElement.value = localStorage.getItem("pchoice") || "sj";
+    pChangeElement.value = localStorage.getItem("proxy") || "sj";
   }
 
   const eventKeyInput = document.getElementById("eventKeyInput");
@@ -374,8 +374,8 @@ function importSaveData() {
           Object.entries(data.localStorage).forEach(([key, value]) => {
             localStorage.setItem(key, value);
           });
-          if (typeof window.resolveProxyPchoice === "function") {
-            window.resolveProxyPchoice();
+          if (typeof window.resolveProxyChoice === "function") {
+            window.resolveProxyChoice();
           }
         }
         alert("Your save data has been imported. Please test it out.");

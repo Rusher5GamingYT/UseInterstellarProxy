@@ -64,7 +64,7 @@ if (form && input) {
 }
 
 function isScramjet(proxyOverride) {
-  const choice = proxyOverride ?? localStorage.getItem("pchoice");
+  const choice = proxyOverride ?? localStorage.getItem("proxy");
   return choice === "sj";
 }
 
@@ -94,11 +94,11 @@ async function navigate(value, path, proxyOverride) {
     url = `https://${url}`;
   }
 
-  const pchoice = proxyOverride ?? localStorage.getItem("pchoice");
-  const proxyUrl = await encodeUrl(url, pchoice);
+  const proxyChoice = proxyOverride ?? localStorage.getItem("proxy");
+  const proxyUrl = await encodeUrl(url, proxyChoice);
   sessionStorage.setItem("GoUrl", proxyUrl);
 
-  if (pchoice === "dy") {
+  if (proxyChoice === "dy") {
     window.location.href = `/uv/dynamic/${__uv$config.encodeUrl(url)}`;
   } else if (path) {
     location.href = path;

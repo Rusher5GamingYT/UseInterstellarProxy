@@ -7,7 +7,7 @@ function prependHttps(url) {
 }
 
 function isScramjetEnabled() {
-  return localStorage.getItem("pchoice") === "sj";
+  return localStorage.getItem("proxy") === "sj";
 }
 
 async function encodeProxyUrl(url) {
