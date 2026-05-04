@@ -94,14 +94,19 @@ document.addEventListener("DOMContentLoaded", () => {
   // Event Key Logic
   const eventKey = JSON.parse(localStorage.getItem("eventKey")) || ["`"];
   const rawPLink = localStorage.getItem("pLink") || "https://classroom.google.com/";
-  const pLink = reconstructSafeUrl(rawPLink) ?? "https://classroom.google.com/";
-  let pressedKeys = [];
+  const safePLink = reconstructSafeUrl(rawPLink) ?? "https://classroom.google.com/";
 
+  const panicAnchor = document.createElement("a");
+  panicAnchor.href = safePLink;
+  panicAnchor.style.display = "none";
+  document.body.appendChild(panicAnchor);
+
+  let pressedKeys = [];
   document.addEventListener("keydown", event => {
     pressedKeys.push(event.key);
     const recentKeys = pressedKeys.slice(-eventKey.length);
     if (recentKeys.length === eventKey.length && eventKey.every((key, i) => key === recentKeys[i])) {
-      window.location.replace(pLink);
+      panicAnchor.click();
       pressedKeys = [];
     }
   });
