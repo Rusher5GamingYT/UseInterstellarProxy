@@ -1,7 +1,8 @@
-
 let swReady = false;
 let swReadyResolve;
-const swReadyPromise = new Promise(resolve => { swReadyResolve = resolve; });
+const swReadyPromise = new Promise(resolve => {
+  swReadyResolve = resolve;
+});
 
 window.addEventListener("load", async () => {
   if (!("serviceWorker" in navigator)) {
@@ -43,10 +44,7 @@ window.addEventListener("load", async () => {
 
 async function waitForServiceWorker() {
   if (swReady) return;
-  await Promise.race([
-    swReadyPromise,
-    new Promise(resolve => setTimeout(resolve, 4000)),
-  ]);
+  await Promise.race([swReadyPromise, new Promise(resolve => setTimeout(resolve, 4000))]);
 }
 
 const form = document.getElementById("fv");
