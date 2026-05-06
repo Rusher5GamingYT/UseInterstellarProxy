@@ -154,3 +154,25 @@ body {
    from { transform: translateY(0px); }
    to   { transform: translateY(-2000px); }
 }
+/* Rainbow Trail Cursor */
+body.rainbow-trail-cursor {
+   cursor: none;
+}
+
+#rainbow-trail-cursor {
+   position: fixed;
+   width: 8px;
+   height: 8px;
+   background: #fff;
+   border-radius: 50%;
+   pointer-events: none;
+   z-index: 9999;
+   transform: translate(-50%, -50%);
+   mix-blend-mode: difference;
+   transition: width 0.2s ease, height 0.2s ease;
+}
+
+body.rainbow-trail-cursor:active #rainbow-trail-cursor {
+   width: 14px;
+   height: 14px;
+}

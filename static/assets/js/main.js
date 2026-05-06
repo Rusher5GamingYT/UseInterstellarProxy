@@ -324,5 +324,132 @@ document.addEventListener("DOMContentLoaded", () => {
         requestAnimationFrame(animate);
       })();
     }
+  } else if (localStorage.getItem("pointer") === "rainbow-trail") {
+    // Rainbow Trail Particles (based on codepen.io/Jiironimo/pen/vEXbVNP)
+    if (!document.getElementById("pointer-canvas")) {
+      const cursorDot = document.createElement("div");
+      cursorDot.id = "rainbow-trail-cursor";
+      document.body.appendChild(cursorDot);
+      document.body.classList.add("rainbow-trail-cursor");
+
+      const canvas = document.createElement("canvas");
+      canvas.id = "pointer-canvas";
+      document.body.appendChild(canvas);
+
+      const ctx = canvas.getContext("2d");
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      let W = canvas.width;
+      let H = canvas.height;
+      let mx = W / 2;
+      let my = H / 2;
+      let clicking = false;
+      let hue = 0;
+      const particles = [];
+
+      window.addEventListener("resize", () => {
+        W = canvas.width = window.innerWidth;
+        H = canvas.height = window.innerHeight;
+      });
+
+      window.addEventListener("mousemove", e => {
+        mx = e.clientX;
+        my = e.clientY;
+        cursorDot.style.left = mx + "px";
+        cursorDot.style.top = my + "px";
+      });
+
+      window.addEventListener("mousedown", () => (clicking = true));
+      window.addEventListener("mouseup", () => (clicking = false));
+
+      class RainbowTrailParticle {
+        constructor(x, y, isClicking) {
+          this.x = x + (Math.random() - 0.5) * (isClicking ? 18 : 4);
+          this.y = y + (Math.random() - 0.5) * (isClicking ? 18 : 4);
+
+          const speed = isClicking ? 1.5 + Math.random() * 3.5 : 0.4 + Math.random() * 1.2;
+          const angle = Math.random() * Math.PI * 2;
+
+          this.vx = Math.cos(angle) * speed;
+          this.vy = Math.sin(angle) * speed - (isClicking ? 0 : 0.5);
+          this.life = 1;
+          this.decay = isClicking ? 0.018 + Math.random() * 0.025 : 0.012 + Math.random() * 0.018;
+          this.size = isClicking ? 3 + Math.random() * 7 : 1.5 + Math.random() * 3.5;
+          this.hue = hue + (Math.random() - 0.5) * 40;
+          this.sat = 80 + Math.random() * 20;
+          this.lit = 55 + Math.random() * 25;
+          this.shape = isClicking ? Math.floor(Math.random() * 3) : 0;
+          this.rot = Math.random() * Math.PI * 2;
+          this.rotSpd = (Math.random() - 0.5) * 0.2;
+        }
+
+        update() {
+          this.x += this.vx;
+          this.y += this.vy;
+          this.vy += 0.04;
+          this.vx *= 0.98;
+          this.life -= this.decay;
+          this.rot += this.rotSpd;
+          this.size *= 0.992;
+        }
+
+        draw() {
+          if (this.life <= 0) return;
+          ctx.save();
+          ctx.globalAlpha = Math.max(0, this.life * this.life);
+          ctx.fillStyle = `hsl(${this.hue},${this.sat}%,${this.lit}%)`;
+          ctx.shadowColor = `hsl(${this.hue},${this.sat}%,${this.lit}%)`;
+          ctx.shadowBlur = this.size * 3;
+          ctx.translate(this.x, this.y);
+          ctx.rotate(this.rot);
+
+          if (this.shape === 1) {
+            ctx.fillRect(-this.size / 2, -this.size / 2, this.size, this.size);
+          } else if (this.shape === 2) {
+            ctx.beginPath();
+            const r1 = this.size,
+              r2 = this.size * 0.4,
+              pts = 4;
+            for (let i = 0; i < pts * 2; i++) {
+              const r = i % 2 === 0 ? r1 : r2;
+              const ang = (i / (pts * 2)) * Math.PI * 2 - Math.PI / 2;
+              i === 0 ? ctx.moveTo(Math.cos(ang) * r, Math.sin(ang) * r) : ctx.lineTo(Math.cos(ang) * r, Math.sin(ang) * r);
+            }
+            ctx.closePath();
+            ctx.fill();
+          } else {
+            ctx.beginPath();
+            ctx.arc(0, 0, this.size, 0, Math.PI * 2);
+            ctx.fill();
+          }
+
+          ctx.restore();
+        }
+      }
+
+      function spawnTrail() {
+        const count = clicking ? 6 : 2;
+        for (let i = 0; i < count; i++) {
+          particles.push(new RainbowTrailParticle(mx, my, clicking));
+        }
+      }
+
+      (function loop() {
+        requestAnimationFrame(loop);
+        ctx.clearRect(0, 0, W, H);
+
+        hue = (hue + 0.8) % 360;
+        spawnTrail();
+
+        for (let i = particles.length - 1; i >= 0; i--) {
+          particles[i].update();
+          particles[i].draw();
+          if (particles[i].life <= 0 || particles[i].size < 0.3) {
+            particles.splice(i, 1);
+          }
+        }
+      })();
+    }
   }
 });
