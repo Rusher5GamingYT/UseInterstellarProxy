@@ -550,6 +550,73 @@ document.addEventListener("DOMContentLoaded", () => {
         requestAnimationFrame(animateGlow);
       })();
     }
+  } else if (localStorage.getItem("pointer") === "red-circle") {
+    // Red Circle cursor (based on codepen.io/RoshitShrestha/pen/KwgVGwB)
+    if (!document.getElementById("red-circle-cursor")) {
+      document.body.classList.add("red-circle-cursor");
+
+      const cursorEl = document.createElement("div");
+      cursorEl.id = "red-circle-cursor";
+      cursorEl.innerHTML = `
+        <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path id="rc-cursorDot" d="M48 32C48 40.8366 40.8366 48 32 48C23.1634 48 16 40.8366 16 32C16 23.1634 23.1634 16 32 16C40.8366 16 48 23.1634 48 32Z" fill="currentColor"/>
+        </svg>
+        <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:none">
+          <path id="rc-iBeamPath" fill-rule="evenodd" clip-rule="evenodd" d="M23 54C22.4477 54 22 54.4477 22 55C22 55.5523 22.4477 56 23 56L28 56C30.2091 56 32 54.2092 32 52C32 54.2092 33.7909 56 36 56L41 56C41.5523 56 42 55.5523 42 55C42 54.4477 41.5523 54 41 54L37 54C34.7909 54 33 52.2092 33 50L33 14C33 11.7916 34.7896 10.0013 36.9975 10L41 10C41.5523 10 42 9.55229 42 9C42 8.44772 41.5523 8 41 8L36 8C33.7909 8 32 9.79077 32 12C32 9.79077 30.2091 8 28 8L23 8C22.4477 8 22 8.44771 22 9C22 9.55228 22.4477 10 23 10L27 10C29.2085 10.0007 31 11.7912 31 14L31 50C31 52.2092 29.2091 54 27 54L23 54Z" fill="currentColor"/>
+        </svg>
+        <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:none">
+          <path id="rc-iBeamHold" fill-rule="evenodd" clip-rule="evenodd" d="M21 49C20.4477 49 20 49.4477 20 50C20 50.5523 20.4477 51 21 51L28 51C30.2091 51 32 49.2092 32 47C32 49.2092 33.7909 51 36 51L43 51C43.5523 51 44 50.5523 44 50C44 49.4477 43.5523 49 43 49L37 49C34.7909 49 33 47.2092 33 45L33 19C33 16.7916 34.7896 15.0013 36.9975 15L43 15C43.5523 15 44 14.5523 44 14C44 13.4477 43.5523 13 43 13L36 13C33.7909 13 32 14.7908 32 17C32 14.7908 30.2091 13 28 13L21 13C20.4477 13 20 13.4477 20 14C20 14.5523 20.4477 15 21 15L27 15C29.2085 15.0007 31 16.7912 31 19L31 45C31 47.2092 29.2091 49 27 49L21 49Z" fill="currentColor"/>
+        </svg>
+      `;
+      document.body.appendChild(cursorEl);
+
+      function loadScript(src, onload) {
+        const s = document.createElement("script");
+        s.src = src;
+        s.onload = onload;
+        document.head.appendChild(s);
+      }
+
+      function initRedCircle() {
+        gsap.registerPlugin(MorphSVGPlugin);
+
+        const xTo = gsap.quickTo(cursorEl, "x", { duration: 0.2, ease: "power3" });
+        const yTo = gsap.quickTo(cursorEl, "y", { duration: 0.2, ease: "power3" });
+
+        window.addEventListener("mousemove", e => {
+          cursorEl.style.visibility = "visible";
+          xTo(e.clientX);
+          yTo(e.clientY);
+        });
+
+        const cursorTl = gsap.timeline({ paused: true });
+        cursorTl.to("#rc-cursorDot", {
+          morphSVG: "#rc-iBeamPath",
+          duration: 0.3,
+          ease: "power2.inOut",
+        });
+
+        const morphToHold = () => gsap.to("#rc-cursorDot", { morphSVG: "#rc-iBeamHold", duration: 0.4, ease: "back.out(3)" });
+        const morphToIBeam = () => gsap.to("#rc-cursorDot", { morphSVG: "#rc-iBeamPath", duration: 0.4, ease: "back.out(3)" });
+
+        document.querySelectorAll("[data-text-hover]").forEach(el => {
+          el.addEventListener("mouseenter", () => cursorTl.play());
+          el.addEventListener("mouseleave", () => cursorTl.reverse());
+          el.addEventListener("mousedown", morphToHold);
+          el.addEventListener("mouseup", morphToIBeam);
+        });
+      }
+
+      if (typeof gsap === "undefined") {
+        loadScript("https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js", () => {
+          loadScript("https://assets.codepen.io/16327/MorphSVGPlugin3.min.js", initRedCircle);
+        });
+      } else if (typeof MorphSVGPlugin === "undefined") {
+        loadScript("https://assets.codepen.io/16327/MorphSVGPlugin3.min.js", initRedCircle);
+      } else {
+        initRedCircle();
+      }
+    }
   } else if (localStorage.getItem("pointer") === "the-sims") {
     // The Sims Cursor (based on codepen.io/Margarita-the-solid/pen/LERbOMR)
     if (!document.getElementById("the-sims-cursor")) {

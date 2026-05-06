@@ -283,3 +283,30 @@ body.the-sims-cursor {
   0%, 100% { opacity: 0.6; transform: translate(-50%, -50%) scale(1); }
   50%       { opacity: 0.1; transform: translate(-50%, -50%) scale(1.12); }
 }
+
+/* Red Circle cursor (Based on codepen.io/RoshitShrestha/pen/KwgVGwB) */
+body.red-circle-cursor,
+body.red-circle-cursor *:hover {
+  cursor: none;
+}
+
+#red-circle-cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 64px;
+  height: 64px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 9999;
+  color: #df492f;
+  mix-blend-mode: difference;
+  visibility: hidden;
+}
+
+#red-circle-cursor svg {
+  overflow: visible !important;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
