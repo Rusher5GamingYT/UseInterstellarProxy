@@ -176,3 +176,67 @@ body.rainbow-trail-cursor:active #rainbow-trail-cursor {
    width: 14px;
    height: 14px;
 }
+
+/* Blue Orbs Cursor */
+body.blue-orbs-cursor {
+  cursor: none;
+}
+
+.blue-orbs-cursor .cursor-glow,
+.blue-orbs-cursor .cursor-core,
+.blue-orbs-cursor .orb-trail,
+.blue-orbs-cursor .orb-spark {
+  position: fixed;
+  pointer-events: none;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.blue-orbs-cursor .cursor-glow {
+  width: 140px;
+  height: 140px;
+  background: radial-gradient(circle, rgba(255,255,255,0.28), rgba(0,200,255,0.12), transparent 70%);
+  filter: blur(10px);
+  mix-blend-mode: screen;
+  z-index: 9998;
+  visibility: hidden;
+}
+
+.blue-orbs-cursor .cursor-core {
+  width: 16px;
+  height: 16px;
+  background: radial-gradient(circle, #ffffff 0%, #7dd3fc 45%, #22d3ee 100%);
+  box-shadow:
+    0 0 10px rgba(255,255,255,0.8),
+    0 0 20px rgba(34,211,238,0.8),
+    0 0 40px rgba(34,211,238,0.4);
+  z-index: 9999;
+  visibility: hidden;
+}
+
+.blue-orbs-cursor .orb-trail {
+  mix-blend-mode: screen;
+  background: radial-gradient(circle, rgba(255,255,255,0.9), rgba(56,189,248,0.45), rgba(168,85,247,0.15), transparent 72%);
+  filter: blur(2px);
+  position: fixed;
+  animation: orbFadeTrail linear forwards;
+}
+
+.blue-orbs-cursor .orb-spark {
+  width: 6px;
+  height: 6px;
+  background: radial-gradient(circle, #fff, #67e8f9 60%, transparent 75%);
+  box-shadow: 0 0 10px rgba(103,232,249,0.9);
+  position: fixed;
+  animation: orbSparkFly 800ms linear forwards;
+}
+
+@keyframes orbFadeTrail {
+  0%   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(0.2); }
+}
+
+@keyframes orbSparkFly {
+  0%   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  100% { opacity: 0; transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(0.2); }
+}
