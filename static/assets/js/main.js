@@ -133,12 +133,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Background Image Logic
   const savedBackgroundImage = localStorage.getItem("backgroundImage");
-  if (savedBackgroundImage) {
+  if (savedBackgroundImage === "none") {
+    document.body.style.backgroundImage = "none";
+  } else if (savedBackgroundImage) {
     document.body.style.backgroundImage = `url('${savedBackgroundImage}')`;
   }
 
-  // CSS Parallax Pixel Stars - based on codepen.io/sarazond/pen/LYGbwj
+  // Background Particles
   if (localStorage.getItem("particles") === "true") {
+    // CSS Parallax Pixel Stars (based on codepen.io/sarazond/pen/LYGbwj)
     ["stars", "stars2", "stars3"].forEach(id => {
       if (!document.getElementById(id)) {
         const el = document.createElement("div");
@@ -146,5 +149,180 @@ document.addEventListener("DOMContentLoaded", () => {
         document.body.insertBefore(el, document.body.firstChild);
       }
     });
+  }
+
+  // Pointer Effects
+  if (localStorage.getItem("pointer") === "rainbow-stars") {
+    // Rainbow Star Particles (based on codepen.io/tommyho/pen/ZEmjWGY)
+    if (!document.getElementById("pointer-canvas")) {
+      const canvas = document.createElement("canvas");
+      canvas.id = "pointer-canvas";
+      document.body.appendChild(canvas);
+
+      const ctx = canvas.getContext("2d");
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      const bNum = 3;
+      const bSize = 8;
+      const bSpeed = 6;
+      const bDep = 0.1;
+      const bDist = 30;
+      const bStarVar = 2;
+      const bHue = 4;
+
+      let spots = [];
+      let hue = 0;
+      const mouse = { x: undefined, y: undefined };
+
+      window.addEventListener("mousemove", e => {
+        mouse.x = e.clientX;
+        mouse.y = e.clientY;
+        for (let i = 0; i < bNum; i++) spots.push(new Particle());
+      });
+
+      window.addEventListener("resize", () => {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      });
+
+      class Particle {
+        constructor() {
+          this.x = mouse.x;
+          this.y = mouse.y;
+          this.size = Math.random() * bSize + 0.1;
+          this.speedX = Math.random() * bSpeed - bSpeed / 2;
+          this.speedY = Math.random() * bSpeed - bSpeed / 2;
+          this.points = Math.floor(Math.random() * bStarVar) + 5;
+          this.radius = Math.random() * bSize + 0.1;
+          this.color = "hsl(" + bHue * hue + ", 100%, 50%)";
+        }
+        draw() {
+          ctx.fillStyle = this.color;
+          ctx.beginPath();
+          star(this.x, this.y, this.radius * 2, this.radius, this.points);
+          ctx.fill();
+        }
+        update() {
+          this.x += this.speedX;
+          this.y += this.speedY;
+          if (this.size > bDep) this.size -= bDep;
+        }
+      }
+
+      function star(x, y, radius1, radius2, npoints) {
+        const angle = (2 * Math.PI) / npoints;
+        const halfAngle = angle / 2;
+        ctx.moveTo(x + Math.cos(halfAngle) * radius1, y + Math.sin(halfAngle) * radius1);
+        for (let a = 0; a <= 2 * Math.PI; a += angle) {
+          ctx.lineTo(x + Math.cos(a) * radius2, y + Math.sin(a) * radius2);
+          ctx.lineTo(x + Math.cos(a + halfAngle) * radius1, y + Math.sin(a + halfAngle) * radius1);
+        }
+      }
+
+      function handleParticles() {
+        for (let i = 0; i < spots.length; i++) {
+          spots[i].update();
+          spots[i].draw();
+          for (let j = i; j < spots.length; j++) {
+            const dx = spots[i].x - spots[j].x;
+            const dy = spots[i].y - spots[j].y;
+            if (Math.sqrt(dx * dx + dy * dy) < bDist) {
+              ctx.beginPath();
+              ctx.strokeStyle = spots[i].color;
+              ctx.lineWidth = spots[i].size / 3;
+              ctx.moveTo(spots[i].x, spots[i].y);
+              ctx.bezierCurveTo(spots[j].x, spots[j].y, spots[j].x, spots[i].y, spots[j].x, spots[j].y);
+              ctx.stroke();
+            }
+          }
+          if (spots[i].size <= bDep) {
+            spots.splice(i, 1);
+            i--;
+          }
+        }
+        hue++;
+      }
+
+      (function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        handleParticles();
+        requestAnimationFrame(animate);
+      })();
+    }
+  } else if (localStorage.getItem("pointer") === "white-orbs") {
+    // White Orb Particles (based on codepen.io/gabezink17-cmd/pen/WbGmeyR)
+    if (!document.getElementById("pointer-canvas")) {
+      const canvas = document.createElement("canvas");
+      canvas.id = "pointer-canvas";
+      document.body.appendChild(canvas);
+
+      const ctx = canvas.getContext("2d");
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      const mouse = { x: innerWidth / 2, y: innerHeight / 2 };
+      let particles = [];
+
+      class OrbParticle {
+        constructor(x, y) {
+          this.x = x;
+          this.y = y;
+          this.vx = (Math.random() - 0.5) * 4;
+          this.vy = (Math.random() - 0.5) * 4;
+          this.size = Math.random() * 3 + 1;
+          this.life = 100;
+        }
+        update() {
+          this.vx += (mouse.x - this.x) * 0.0005;
+          this.vy += (mouse.y - this.y) * 0.0005;
+          this.x += this.vx;
+          this.y += this.vy;
+          this.vx *= 0.96;
+          this.vy *= 0.96;
+          this.life -= 1;
+        }
+        draw() {
+          ctx.fillStyle = "white";
+          ctx.globalAlpha = this.life / 100;
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.globalAlpha = 1;
+        }
+      }
+
+      function spawn(x, y, n = 10) {
+        for (let i = 0; i < n; i++) particles.push(new OrbParticle(x, y));
+      }
+
+      window.addEventListener("mousemove", e => {
+        mouse.x = e.clientX;
+        mouse.y = e.clientY;
+        spawn(mouse.x, mouse.y, 1);
+      });
+
+      window.addEventListener("click", e => spawn(e.clientX, e.clientY, 40));
+
+      window.addEventListener("mousedown", () => {
+        for (let i = 0; i < 50; i++) spawn(mouse.x, mouse.y, 1);
+      });
+
+      window.addEventListener("resize", () => {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      });
+
+      (function animate() {
+        ctx.globalAlpha = 1;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particles.forEach((p, i) => {
+          p.update();
+          p.draw();
+          if (p.life <= 0) particles.splice(i, 1);
+        });
+        requestAnimationFrame(animate);
+      })();
+    }
   }
 });

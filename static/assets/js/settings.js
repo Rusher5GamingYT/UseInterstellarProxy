@@ -58,22 +58,71 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("ab-settings-switch").checked = true;
   }
 
-  const backgroundInput = document.getElementById("background-input");
-  backgroundInput.value = localStorage.getItem("backgroundImage") || "";
+  // Themes
+  const themeDropdown = document.getElementById("theme-dropdown");
+  themeDropdown.value = localStorage.getItem("theme") || "d";
+  themeDropdown.addEventListener("change", function () {
+    themeChange(this);
+  });
 
-  document.getElementById("save-button").addEventListener("click", () => {
-    const imageURL = backgroundInput.value.trim();
-    if (imageURL) {
-      localStorage.setItem("backgroundImage", imageURL);
-      document.body.style.backgroundImage = `url('${imageURL}')`;
+  // Backgrounds
+  const bgDropdown = document.getElementById("background-dropdown");
+  const bgCustomRow = document.getElementById("background-custom-row");
+  const bgInput = document.getElementById("background-input");
+
+  const savedBg = localStorage.getItem("backgroundImage");
+  const savedBgMode = localStorage.getItem("backgroundMode") || "default";
+  bgDropdown.value = savedBgMode;
+  if (savedBgMode === "custom") {
+    bgCustomRow.style.display = "";
+    bgInput.value = savedBg || "";
+  }
+
+  bgDropdown.addEventListener("change", function () {
+    const mode = this.value;
+    localStorage.setItem("backgroundMode", mode);
+    if (mode === "default") {
+      bgCustomRow.style.display = "none";
+      localStorage.removeItem("backgroundImage");
+      document.body.style.backgroundImage = "";
+      window.location.reload();
+    } else if (mode === "none") {
+      bgCustomRow.style.display = "none";
+      localStorage.setItem("backgroundImage", "none");
+      document.body.style.backgroundImage = "none";
+    } else if (mode === "custom") {
+      bgCustomRow.style.display = "";
     }
   });
 
-  document.getElementById("reset-button").addEventListener("click", () => {
-    localStorage.removeItem("backgroundImage");
-    backgroundInput.value = "";
-    document.body.style.backgroundImage = "";
-    window.location.reload();
+  document.getElementById("save-button").addEventListener("click", () => {
+    const url = bgInput.value.trim();
+    if (url) {
+      localStorage.setItem("backgroundImage", url);
+      localStorage.setItem("backgroundMode", "custom");
+      document.body.style.backgroundImage = `url('${url}')`;
+    }
+  });
+
+  // Background Particles
+  const particlesDropdown = document.getElementById("particles-dropdown");
+  particlesDropdown.value = localStorage.getItem("particles") === "true" ? "on" : "off";
+  particlesDropdown.addEventListener("change", function () {
+    localStorage.setItem("particles", this.value === "on" ? "true" : "false");
+  });
+
+  // Cursor Effects
+  const pointerDropdown = document.getElementById("pointer-dropdown");
+  pointerDropdown.value = localStorage.getItem("pointer") || "default";
+  pointerDropdown.addEventListener("change", function () {
+    const val = this.value;
+    if (val === "default") {
+      localStorage.removeItem("pointer");
+    } else {
+      localStorage.setItem("pointer", val);
+    }
+    const existing = document.getElementById("pointer-canvas");
+    if (existing) existing.remove();
   });
 
   document.getElementById("engine").addEventListener("change", function () {
@@ -83,17 +132,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const savedEngineName = localStorage.getItem("enginename");
   if (savedEngineName) document.getElementById("engine").value = savedEngineName;
-
-  const particlesSwitch = document.getElementById("2");
-  particlesSwitch.checked = localStorage.getItem("particles") === "true";
-  particlesSwitch.addEventListener("change", event => {
-    localStorage.setItem("particles", event.currentTarget.checked ? "true" : "false");
-  });
-
-  const themeDropdown = document.getElementById("theme-dropdown");
-  themeDropdown.addEventListener("change", function () {
-    themeChange(this);
-  });
 });
 
 function saveEventKey() {
