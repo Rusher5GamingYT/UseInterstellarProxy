@@ -70,6 +70,41 @@ function reconstructSafeUrl(raw) {
   }
 }
 
+
+function setupIframeTracking(moveCallback, hideCallback) {
+  function attachToIframe(iframe) {
+    if (iframe.dataset.cursorTracked) return;
+    iframe.dataset.cursorTracked = "1";
+
+    function tryAttach() {
+      try {
+        const iwin = iframe.contentWindow;
+        if (!iwin) return;
+        iwin.addEventListener("mousemove", e => {
+          const rect = iframe.getBoundingClientRect();
+          moveCallback(rect.left + e.clientX, rect.top + e.clientY);
+        });
+        iwin.addEventListener("mouseleave", () => hideCallback());
+      } catch (err) {
+      }
+    }
+
+    if (iframe.contentDocument && iframe.contentDocument.readyState === "complete") {
+      tryAttach();
+    } else {
+      iframe.addEventListener("load", tryAttach);
+    }
+  }
+
+  document.querySelectorAll("iframe").forEach(attachToIframe);
+  new MutationObserver(mutations => {
+    mutations.forEach(m => m.addedNodes.forEach(n => {
+      if (n.tagName === "IFRAME") attachToIframe(n);
+      else if (n.querySelectorAll) n.querySelectorAll("iframe").forEach(attachToIframe);
+    }));
+  }).observe(document.body, { childList: true, subtree: true });
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   const blockedHostnames = ["gointerstellar.app"];
 
@@ -180,6 +215,18 @@ document.addEventListener("DOMContentLoaded", () => {
         mouse.y = e.clientY;
         for (let i = 0; i < bNum; i++) spots.push(new Particle());
       });
+
+      setupIframeTracking(
+        (x, y) => {
+          mouse.x = x;
+          mouse.y = y;
+          for (let i = 0; i < bNum; i++) spots.push(new Particle());
+        },
+        () => {
+          mouse.x = undefined;
+          mouse.y = undefined;
+        }
+      );
 
       window.addEventListener("resize", () => {
         canvas.width = window.innerWidth;
@@ -302,6 +349,15 @@ document.addEventListener("DOMContentLoaded", () => {
         spawn(mouse.x, mouse.y, 1);
       });
 
+      setupIframeTracking(
+        (x, y) => {
+          mouse.x = x;
+          mouse.y = y;
+          spawn(x, y, 1);
+        },
+        () => {}
+      );
+
       window.addEventListener("click", e => spawn(e.clientX, e.clientY, 40));
 
       window.addEventListener("mousedown", () => {
@@ -361,6 +417,25 @@ document.addEventListener("DOMContentLoaded", () => {
         cursorDot.style.top = my + "px";
         cursorDot.style.visibility = "visible";
       });
+
+      document.addEventListener("mouseleave", () => {
+        mx = null;
+        my = null;
+        cursorDot.style.visibility = "hidden";
+      });
+
+      setupIframeTracking(
+        (x, y) => {
+          mx = x; my = y;
+          cursorDot.style.left = mx + "px";
+          cursorDot.style.top = my + "px";
+          cursorDot.style.visibility = "visible";
+        },
+        () => {
+          mx = null; my = null;
+          cursorDot.style.visibility = "hidden";
+        }
+      );
 
       window.addEventListener("mousedown", () => (clicking = true));
       window.addEventListener("mouseup", () => (clicking = false));
@@ -530,6 +605,36 @@ document.addEventListener("DOMContentLoaded", () => {
         lastY = mouseY;
       });
 
+      document.addEventListener("mouseleave", () => {
+        mouseX = null;
+        mouseY = null;
+        core.style.visibility = "hidden";
+        glow.style.visibility = "hidden";
+      });
+
+      setupIframeTracking(
+        (x, y) => {
+          mouseX = x; mouseY = y;
+          if (core.style.visibility !== "visible") {
+            core.style.visibility = "visible";
+            glow.style.visibility = "visible";
+            glowX = x; glowY = y; lastX = x; lastY = y;
+          }
+          const dx = mouseX - lastX, dy = mouseY - lastY;
+          const speed = Math.sqrt(dx * dx + dy * dy);
+          core.style.left = `${mouseX}px`;
+          core.style.top = `${mouseY}px`;
+          createTrail(mouseX, mouseY, speed);
+          if (speed > 25) { createSpark(mouseX, mouseY); createSpark(mouseX, mouseY); }
+          lastX = mouseX; lastY = mouseY;
+        },
+        () => {
+          mouseX = null; mouseY = null;
+          core.style.visibility = "hidden";
+          glow.style.visibility = "hidden";
+        }
+      );
+
       window.addEventListener("mousedown", () => {
         core.style.transform = "translate(-50%, -50%) scale(1.8)";
         glow.style.transform = "translate(-50%, -50%) scale(1.2)";
@@ -585,15 +690,23 @@ document.addEventListener("DOMContentLoaded", () => {
         let rcCurX = 0,
           rcCurY = 0;
 
-        window.addEventListener("mousemove", e => {
-          if (rcTargetX === null) {
-            rcCurX = e.clientX;
-            rcCurY = e.clientY;
-          }
-          rcTargetX = e.clientX;
-          rcTargetY = e.clientY;
+        function rcMoveTo(x, y) {
+          if (rcTargetX === null) { rcCurX = x; rcCurY = y; }
+          rcTargetX = x; rcTargetY = y;
           cursorEl.style.visibility = "visible";
+        }
+
+        window.addEventListener("mousemove", e => rcMoveTo(e.clientX, e.clientY));
+
+        document.addEventListener("mouseleave", () => {
+          rcTargetX = null; rcTargetY = null;
+          cursorEl.style.visibility = "hidden";
         });
+
+        setupIframeTracking(
+          (x, y) => rcMoveTo(x, y),
+          () => { rcTargetX = null; rcTargetY = null; cursorEl.style.visibility = "hidden"; }
+        );
 
         (function rcFollow() {
           if (rcTargetX !== null) {
@@ -788,12 +901,21 @@ document.addEventListener("DOMContentLoaded", () => {
         setTimeout(() => el.remove(), (d + 0.2) * 1000);
       }
 
+      let simsMouseX = null;
+      let simsMouseY = null;
+
       const simsInterval = setInterval(() => {
         if (localStorage.getItem("pointer") !== "the-sims") {
           clearInterval(simsInterval);
           return;
         }
-        spawnSimsPt(window.innerWidth * (0.1 + Math.random() * 0.8), window.innerHeight * (0.4 + Math.random() * 0.45), 0.6 + Math.random() * 0.5);
+        if (simsMouseX === null) return;
+        const spread = 60;
+        spawnSimsPt(
+          simsMouseX + (Math.random() - 0.5) * spread,
+          simsMouseY + (Math.random() - 0.5) * spread,
+          0.6 + Math.random() * 0.5
+        );
       }, 420);
 
       const simsClickHandler = e => {
@@ -804,9 +926,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       };
       document.addEventListener("click", simsClickHandler);
-
-      let simsMouseX = null;
-      let simsMouseY = null;
 
       document.addEventListener("mousemove", e => {
         simsMouseX = e.clientX;
@@ -821,6 +940,36 @@ document.addEventListener("DOMContentLoaded", () => {
         halo2.style.left = simsMouseX + "px";
         halo2.style.top = simsMouseY + "px";
       });
+
+      document.addEventListener("mouseleave", () => {
+        simsMouseX = null;
+        simsMouseY = null;
+        cursorSvg.style.visibility = "hidden";
+        halo1.style.visibility = "hidden";
+        halo2.style.visibility = "hidden";
+      });
+
+      document.addEventListener("mouseenter", () => {
+        halo1.style.visibility = "visible";
+        halo2.style.visibility = "visible";
+      });
+
+      setupIframeTracking(
+        (x, y) => {
+          simsMouseX = x; simsMouseY = y;
+          cursorSvg.style.left = x + "px";
+          cursorSvg.style.top = y + "px";
+          cursorSvg.style.visibility = "visible";
+          halo1.style.left = x + "px"; halo1.style.top = y + "px"; halo1.style.visibility = "visible";
+          halo2.style.left = x + "px"; halo2.style.top = y + "px"; halo2.style.visibility = "visible";
+        },
+        () => {
+          simsMouseX = null; simsMouseY = null;
+          cursorSvg.style.visibility = "hidden";
+          halo1.style.visibility = "hidden";
+          halo2.style.visibility = "hidden";
+        }
+      );
     }
   }
 });
