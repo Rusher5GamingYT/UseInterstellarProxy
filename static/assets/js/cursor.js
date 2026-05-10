@@ -719,6 +719,83 @@ function initBlueOrbsDom() {
   initBlueOrbs();
 }
 
+// Based on codepen.io/ksenia-k/pen/rNoBgbV
+function initSnakeTrail() {
+  if (document.getElementById("pointer-canvas")) return;
+
+  const canvas = createFullscreenCanvas("pointer-canvas");
+  const ctx = canvas.getContext("2d");
+
+  const pointer = { x: null, y: null };
+  const params = {
+    pointsNumber: 40,
+    widthFactor: 0.3,
+    spring: 0.4,
+    friction: 0.5,
+  };
+
+  const trail = Array.from({ length: params.pointsNumber }, () => ({
+    x: window.innerWidth / 2,
+    y: window.innerHeight / 2,
+    dx: 0,
+    dy: 0,
+  }));
+
+  function onMove(x, y) {
+    pointer.x = x;
+    pointer.y = y;
+  }
+
+  window.addEventListener("mousemove", e => onMove(e.clientX, e.clientY));
+  window.addEventListener("touchmove", e => onMove(e.targetTouches[0].pageX, e.targetTouches[0].pageY));
+  document.addEventListener("mouseleave", () => {
+    pointer.x = null;
+    pointer.y = null;
+  });
+  setupIframeTracking(onMove, () => {
+    pointer.x = null;
+    pointer.y = null;
+  });
+
+  function update(t) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (pointer.x === null) {
+      requestAnimationFrame(update);
+      return;
+    }
+
+    trail.forEach((p, i) => {
+      const prev = i === 0 ? { x: pointer.x, y: pointer.y } : trail[i - 1];
+      const spring = i === 0 ? 0.4 * params.spring : params.spring;
+      p.dx += (prev.x - p.x) * spring;
+      p.dy += (prev.y - p.y) * spring;
+      p.dx *= params.friction;
+      p.dy *= params.friction;
+      p.x += p.dx;
+      p.y += p.dy;
+    });
+
+    ctx.lineCap = "round";
+    ctx.strokeStyle = getComputedStyle(document.body).getPropertyValue("--text-primary").trim() || "#ffffff";
+    ctx.beginPath();
+    ctx.moveTo(trail[0].x, trail[0].y);
+
+    for (let i = 1; i < trail.length - 1; i++) {
+      const xc = 0.5 * (trail[i].x + trail[i + 1].x);
+      const yc = 0.5 * (trail[i].y + trail[i + 1].y);
+      ctx.quadraticCurveTo(trail[i].x, trail[i].y, xc, yc);
+      ctx.lineWidth = params.widthFactor * (params.pointsNumber - i);
+      ctx.stroke();
+    }
+    ctx.lineTo(trail[trail.length - 1].x, trail[trail.length - 1].y);
+    ctx.stroke();
+
+    requestAnimationFrame(update);
+  }
+
+  requestAnimationFrame(update);
+}
+
 function initCursorEffect() {
   const pointer = localStorage.getItem("pointer");
   switch (pointer) {
@@ -739,6 +816,9 @@ function initCursorEffect() {
       break;
     case "the-sims":
       initTheSims();
+      break;
+    case "curly-cursor":
+      initSnakeTrail();
       break;
   }
 }
