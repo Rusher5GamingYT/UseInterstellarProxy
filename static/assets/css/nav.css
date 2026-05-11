@@ -77,6 +77,10 @@ img {
    right: 2%;
 }
 
+.navbar-link {
+   margin-right: 5px;
+}
+
 .nav-bar-right .navbar-link {
    margin-left: 10px;
    text-transform: uppercase;
@@ -132,17 +136,13 @@ img {
    transition: all 0.2s ease;
 }
 
-.navbar-link {
-   margin-right: 5px;
-}
-
 .navbar-link:hover > .settings-icon {
    animation: spin 0.5s;
    animation-timing-function: cubic-bezier(0, 1.04, 0.91, 0.99);
 }
 
 @media (max-width: 768px) {
-   .nav-bar-right .navbar-link an {
+   .nav-bar-right .navbar-link a {
       display: none;
    }
    .nav-bar-right .fa-solid {
