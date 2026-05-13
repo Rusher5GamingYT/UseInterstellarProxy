@@ -2,9 +2,11 @@ FROM node:20-slim
 
 WORKDIR /app
 
+RUN corepack enable
+
 COPY package.json pnpm-lock.yaml* ./
 
-RUN npm install -g pnpm && pnpm install
+RUN pnpm install --frozen-lockfile
 
 COPY . .
 
