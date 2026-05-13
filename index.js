@@ -10,14 +10,14 @@ import basicAuth from "express-basic-auth";
 import bareMuxNode from "@mercuryworkshop/bare-mux/node";
 import { server as wisp } from "@mercuryworkshop/wisp-js/server";
 import mime from "mime";
-import fetch from "node-fetch";
+const fetch = global.fetch;
 // import { setupMasqr } from "./Masqr.js";
 import config from "./config.js";
 
 console.log(chalk.yellow("🚀 Starting server..."));
 
 const __dirname = process.cwd();
-const server = http.createServer();
+const server = http.createServer((req, res) => app(req, res));
 const app = express();
 const bareServer = createBareServer("/ca/");
 const { baremuxPath } = bareMuxNode;
@@ -160,8 +160,6 @@ server.on("upgrade", (req, socket, head) => {
   }
 });
 
-server.on("listening", () => {
-  console.log(chalk.green(`🌍 Server is running on http://localhost:${PORT}`));
+server.listen(PORT, "0.0.0.0", () => {
+  console.log(`🌍 Server running on port ${PORT}`);
 });
-
-server.listen({ port: PORT });
