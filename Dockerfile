@@ -1,12 +1,15 @@
-FROM node:bookworm-slim
-ENV NODE_ENV=production
+FROM node:20-slim
 
 WORKDIR /app
 
-COPY ["package.json", "./"]
+RUN corepack enable
 
-RUN npm install
+COPY package.json pnpm-lock.yaml* ./
+
+RUN pnpm install --frozen-lockfile
 
 COPY . .
 
-CMD [ "node", "index.js" ]
+EXPOSE 8080
+
+CMD ["pnpm", "start"]
