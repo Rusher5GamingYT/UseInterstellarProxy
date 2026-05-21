@@ -1,3 +1,4 @@
+import { existsSync } from "node:fs";
 import http from "node:http";
 import path from "node:path";
 import bareMuxNode from "@mercuryworkshop/bare-mux/node";
@@ -15,6 +16,12 @@ import config from "./config.js";
 console.log(chalk.yellow("🚀 Starting server..."));
 
 const __dirname = process.cwd();
+
+const DIST_DIR = path.join(__dirname, "dist");
+const STATIC_DIR = path.join(__dirname, "static");
+const SERVE_DIR = existsSync(DIST_DIR) ? DIST_DIR : STATIC_DIR;
+console.log(chalk.blue(`Serving from ${path.relative(__dirname, SERVE_DIR)}/`));
+
 const server = http.createServer();
 const app = express();
 const bareServer = createBareServer("/bare/");
@@ -57,12 +64,13 @@ const ghGamesBases = {
 };
 const noMimeExts = new Set([".unityweb"]);
 
-app.get("/gh-games/*", ghGamesLimiter, async (req, res, next) => {
+app.get("/gh-games/:path(*)", ghGamesLimiter, async (req, res, next) => {
   try {
+    const reqPath = "/gh-games/" + req.params.path;
     let reqTarget;
     for (const [prefix, baseUrl] of Object.entries(ghGamesBases)) {
-      if (req.path.startsWith(prefix)) {
-        reqTarget = baseUrl + req.path.slice(prefix.length);
+      if (reqPath.startsWith(prefix)) {
+        reqTarget = baseUrl + reqPath.slice(prefix.length);
         break;
       }
     }
@@ -75,10 +83,7 @@ app.get("/gh-games/*", ghGamesLimiter, async (req, res, next) => {
 
     const asset = await fetch(reqTarget, { headers: upstreamHeaders });
 
-    if (asset.status === 304) {
-      return res.sendStatus(304);
-    }
-
+    if (asset.status === 304) return res.sendStatus(304);
     if (!asset.ok) return next();
 
     const data = Buffer.from(await asset.arrayBuffer());
@@ -116,7 +121,19 @@ const transportStaticOptions = {
   },
 };
 
-app.use(express.static(path.join(__dirname, "static")));
+const jsStaticOptions = {
+  setHeaders: (res, filePath) => {
+    const ext = path.extname(filePath);
+    if (ext === ".js" || ext === ".mjs") {
+      res.type("text/javascript");
+      res.setHeader("Service-Worker-Allowed", "/");
+    } else if (ext === ".wasm") {
+      res.type("application/wasm");
+    }
+  },
+};
+
+app.use(express.static(SERVE_DIR, jsStaticOptions));
 app.use("/bare", cors({ origin: true }));
 app.use("/bm", express.static(baremuxPath, transportStaticOptions));
 app.use("/ep", express.static(epoxyDistPath, transportStaticOptions));
@@ -132,17 +149,17 @@ const routes = [
 
 routes.forEach(route => {
   app.get(route.path, generalLimiter, (_req, res) => {
-    res.sendFile(path.join(__dirname, "static", route.file));
+    res.sendFile(path.join(SERVE_DIR, route.file));
   });
 });
 
-app.use(generalLimiter, (req, res) => {
-  res.status(404).sendFile(path.join(__dirname, "static", "404.html"));
+app.use(generalLimiter, (_req, res) => {
+  res.status(404).sendFile(path.join(SERVE_DIR, "404.html"));
 });
 
-app.use(generalLimiter, (err, req, res, next) => {
+app.use(generalLimiter, (err, _req, res, _next) => {
   console.error(err.stack);
-  res.status(500).sendFile(path.join(__dirname, "static", "404.html"));
+  res.status(500).sendFile(path.join(SERVE_DIR, "404.html"));
 });
 
 server.on("request", (req, res) => {
